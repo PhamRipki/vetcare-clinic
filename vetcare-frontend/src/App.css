@@ -182,3 +182,55 @@ body {
 .status-menunggu { color: #b45309; background: #fef3c7; font-weight: 600; }
 .status-selesai   { color: #065f46; background: #d1fae5; font-weight: 600; }
 .status-batal     { color: #991b1b; background: #fee2e2; font-weight: 600; }
+
+/* Form edit mode */
+.form-editing {
+  background: #fffbeb;
+  border: 2px solid #fbbf24;
+  border-radius: 12px;
+  padding: 1rem;
+  position: relative;
+}
+
+.editing-badge {
+  width: 100%;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #b45309;
+  margin-bottom: 0.5rem;
+}
+
+/* Tombol Edit */
+.btn-edit {
+  background: #f59e0b;
+  color: white;
+  padding: 0.4rem 0.8rem;
+  font-size: 0.85rem;
+}
+
+.btn-edit:hover {
+  background: #d97706;
+}
+
+/* Tombol Batal */
+.btn-secondary {
+  background: #94a3b8;
+  color: white;
+}
+
+.btn-secondary:hover {
+  background: #64748b;
+}
+
+/* Baris yang sedang diedit */
+.row-editing td {
+  background: #fffbeb !important;
+  border-left: 3px solid #fbbf24;
+}
+
+/* Kolom aksi */
+.action-cell {
+  display: flex;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+}

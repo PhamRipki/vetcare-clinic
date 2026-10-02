@@ -4,10 +4,10 @@ import API from '../api';
 function OwnerList() {
   const [owners, setOwners] = useState([]);
   const [form, setForm] = useState({ nama: '', telepon: '', alamat: '' });
+  const [editingId, setEditingId] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  // READ: Ambil data saat komponen pertama kali dimuat
   useEffect(() => {
     fetchOwners();
   }, []);
@@ -25,27 +25,45 @@ function OwnerList() {
     }
   };
 
-  // CREATE: Tambah pemilik baru
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      await API.post('/owners', form);
-      setForm({ nama: '', telepon: '', alamat: '' });
-      fetchOwners(); // refresh data
+      if (editingId) {
+        await API.put(`/owners/${editingId}`, form);
+      } else {
+        await API.post('/owners', form);
+      }
+      resetForm();
+      fetchOwners();
     } catch (err) {
-      setError('Gagal menambah pemilik: ' + err.message);
+      setError('Gagal menyimpan: ' + err.message);
     }
   };
 
-  // DELETE: Hapus pemilik
+  const handleEdit = (owner) => {
+    setForm({
+      nama: owner.nama,
+      telepon: owner.telepon || '',
+      alamat: owner.alamat || '',
+    });
+    setEditingId(owner.id);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
   const handleDelete = async (id) => {
     if (!window.confirm('Yakin ingin menghapus pemilik ini? Hewan peliharaannya akan ikut terhapus.')) return;
     try {
       await API.delete(`/owners/${id}`);
+      if (editingId === id) resetForm();
       fetchOwners();
     } catch (err) {
       setError('Gagal menghapus: ' + err.message);
     }
+  };
+
+  const resetForm = () => {
+    setForm({ nama: '', telepon: '', alamat: '' });
+    setEditingId(null);
   };
 
   return (
@@ -54,7 +72,11 @@ function OwnerList() {
 
       {error && <div className="error-box">{error}</div>}
 
-      <form onSubmit={handleSubmit} className="form-inline">
+      <form onSubmit={handleSubmit} className={`form-inline ${editingId ? 'form-editing' : ''}`}>
+        {editingId && (
+          <div className="editing-badge">✏️ Mode Edit — ID #{editingId}</div>
+        )}
+
         <input
           placeholder="Nama Pemilik *"
           value={form.nama}
@@ -71,7 +93,16 @@ function OwnerList() {
           value={form.alamat}
           onChange={(e) => setForm({ ...form, alamat: e.target.value })}
         />
-        <button type="submit" className="btn btn-primary">+ Tambah</button>
+
+        <button type="submit" className="btn btn-primary">
+          {editingId ? '💾 Update' : '+ Tambah'}
+        </button>
+
+        {editingId && (
+          <button type="button" className="btn btn-secondary" onClick={resetForm}>
+            ✖ Batal
+          </button>
+        )}
       </form>
 
       {loading ? (
@@ -92,16 +123,16 @@ function OwnerList() {
               <tr><td colSpan="5" style={{ textAlign: 'center' }}>Belum ada data</td></tr>
             ) : (
               owners.map((owner) => (
-                <tr key={owner.id}>
+                <tr key={owner.id} className={editingId === owner.id ? 'row-editing' : ''}>
                   <td>{owner.id}</td>
                   <td>{owner.nama}</td>
                   <td>{owner.telepon}</td>
                   <td>{owner.alamat}</td>
-                  <td>
-                    <button
-                      className="btn btn-danger"
-                      onClick={() => handleDelete(owner.id)}
-                    >
+                  <td className="action-cell">
+                    <button className="btn btn-edit" onClick={() => handleEdit(owner)}>
+                      Edit
+                    </button>
+                    <button className="btn btn-danger" onClick={() => handleDelete(owner.id)}>
                       Hapus
                     </button>
                   </td>
