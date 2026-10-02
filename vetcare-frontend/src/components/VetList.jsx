@@ -4,6 +4,7 @@ import API from '../api';
 function VetList() {
   const [vets, setVets] = useState([]);
   const [form, setForm] = useState({ nama: '', spesialisasi: '', telepon: '' });
+  const [editingId, setEditingId] = useState(null);
   const [error, setError] = useState('');
 
   useEffect(() => {
@@ -23,22 +24,42 @@ function VetList() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      await API.post('/vets', form);
-      setForm({ nama: '', spesialisasi: '', telepon: '' });
+      if (editingId) {
+        await API.put(`/vets/${editingId}`, form);
+      } else {
+        await API.post('/vets', form);
+      }
+      resetForm();
       fetchVets();
     } catch (err) {
-      setError('Gagal menambah dokter: ' + err.message);
+      setError('Gagal menyimpan: ' + err.message);
     }
+  };
+
+  const handleEdit = (vet) => {
+    setForm({
+      nama: vet.nama,
+      spesialisasi: vet.spesialisasi || '',
+      telepon: vet.telepon || '',
+    });
+    setEditingId(vet.id);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const handleDelete = async (id) => {
     if (!window.confirm('Yakin ingin menghapus dokter ini?')) return;
     try {
       await API.delete(`/vets/${id}`);
+      if (editingId === id) resetForm();
       fetchVets();
     } catch (err) {
       setError('Gagal menghapus: ' + err.message);
     }
+  };
+
+  const resetForm = () => {
+    setForm({ nama: '', spesialisasi: '', telepon: '' });
+    setEditingId(null);
   };
 
   return (
@@ -47,7 +68,11 @@ function VetList() {
 
       {error && <div className="error-box">{error}</div>}
 
-      <form onSubmit={handleSubmit} className="form-inline">
+      <form onSubmit={handleSubmit} className={`form-inline ${editingId ? 'form-editing' : ''}`}>
+        {editingId && (
+          <div className="editing-badge">✏️ Mode Edit — ID #{editingId}</div>
+        )}
+
         <input
           placeholder="Nama Dokter *"
           value={form.nama}
@@ -64,7 +89,16 @@ function VetList() {
           value={form.telepon}
           onChange={(e) => setForm({ ...form, telepon: e.target.value })}
         />
-        <button type="submit" className="btn btn-primary">+ Tambah</button>
+
+        <button type="submit" className="btn btn-primary">
+          {editingId ? '💾 Update' : '+ Tambah'}
+        </button>
+
+        {editingId && (
+          <button type="button" className="btn btn-secondary" onClick={resetForm}>
+            ✖ Batal
+          </button>
+        )}
       </form>
 
       <table className="data-table">
@@ -82,12 +116,15 @@ function VetList() {
             <tr><td colSpan="5" style={{ textAlign: 'center' }}>Belum ada data</td></tr>
           ) : (
             vets.map((vet) => (
-              <tr key={vet.id}>
+              <tr key={vet.id} className={editingId === vet.id ? 'row-editing' : ''}>
                 <td>{vet.id}</td>
                 <td>{vet.nama}</td>
                 <td>{vet.spesialisasi}</td>
                 <td>{vet.telepon}</td>
-                <td>
+                <td className="action-cell">
+                  <button className="btn btn-edit" onClick={() => handleEdit(vet)}>
+                    Edit
+                  </button>
                   <button className="btn btn-danger" onClick={() => handleDelete(vet.id)}>
                     Hapus
                   </button>

@@ -122,6 +122,23 @@ app.post('/api/vets', async (req, res) => {
   }
 });
 
+app.put('/api/vets/:id', async (req, res) => {
+  const { id } = req.params;
+  const { nama, spesialisasi, telepon } = req.body;
+  try {
+    const result = await pool.query(
+      'UPDATE vets SET nama=$1, spesialisasi=$2, telepon=$3 WHERE id=$4 RETURNING *',
+      [nama, spesialisasi, telepon, id]
+    );
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Dokter tidak ditemukan' });
+    }
+    res.json(result.rows[0]);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 app.delete('/api/vets/:id', async (req, res) => {
   try {
     const result = await pool.query('DELETE FROM vets WHERE id=$1 RETURNING *', [req.params.id]);
