@@ -1,12 +1,16 @@
-import { toast } from 'react-toastify';
 import { useState, useEffect } from 'react';
+import { toast } from 'react-toastify';
 import API from '../api';
+import ConfirmDialog from './ConfirmDialog';
+import { useConfirm } from '../hooks/useConfirm';
 
 function VetList() {
   const [vets, setVets] = useState([]);
   const [form, setForm] = useState({ nama: '', spesialisasi: '', telepon: '' });
   const [editingId, setEditingId] = useState(null);
   const [error, setError] = useState('');
+
+  const { confirm, confirmState, handleConfirm, handleCancel } = useConfirm();
 
   useEffect(() => {
     fetchVets();
@@ -23,21 +27,22 @@ function VetList() {
   };
 
   const handleSubmit = async (e) => {
-  e.preventDefault();
-  try {
-    if (editingId) {
-      await API.put(`/vets/${editingId}`, form);
-      toast.success('Dokter berhasil diperbarui!');
-    } else {
-      await API.post('/vets', form);
-      toast.success('Dokter berhasil ditambahkan!');
+    e.preventDefault();
+    try {
+      if (editingId) {
+        await API.put(`/vets/${editingId}`, form);
+        toast.success('Dokter berhasil diperbarui!');
+      } else {
+        await API.post('/vets', form);
+        toast.success('Dokter berhasil ditambahkan!');
+      }
+      resetForm();
+      fetchVets();
+    } catch (err) {
+      const msg = err.response?.data?.error || err.message;
+      toast.error('Gagal menyimpan: ' + msg);
     }
-    resetForm();
-    fetchVets();
-  } catch (err) {
-    toast.error('Gagal menyimpan: ' + err.message);
-  }
-};
+  };
 
   const handleEdit = (vet) => {
     setForm({
@@ -49,17 +54,23 @@ function VetList() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  const handleDelete = async (id) => {
-  if (!window.confirm('Yakin ingin menghapus dokter ini?')) return;
-  try {
-    await API.delete(`/vets/${id}`);
-    if (editingId === id) resetForm();
-    fetchVets();
-    toast.success('Dokter berhasil dihapus!');
-  } catch (err) {
-    toast.error('Gagal menghapus: ' + err.message);
-  }
-};
+  const handleDelete = (id) => {
+    confirm(
+      'Yakin ingin menghapus dokter ini?',
+      async () => {
+        try {
+          await API.delete(`/vets/${id}`);
+          if (editingId === id) resetForm();
+          fetchVets();
+          toast.success('Dokter berhasil dihapus!');
+        } catch (err) {
+          const msg = err.response?.data?.error || err.message;
+          toast.error(msg);
+        }
+      },
+      'Hapus Dokter'
+    );
+  };
 
   const resetForm = () => {
     setForm({ nama: '', spesialisasi: '', telepon: '' });
@@ -134,6 +145,14 @@ function VetList() {
           )}
         </tbody>
       </table>
+
+      <ConfirmDialog
+        isOpen={confirmState.isOpen}
+        title={confirmState.title}
+        message={confirmState.message}
+        onConfirm={handleConfirm}
+        onCancel={handleCancel}
+      />
     </div>
   );
 }

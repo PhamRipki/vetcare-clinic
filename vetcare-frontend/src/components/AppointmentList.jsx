@@ -1,6 +1,8 @@
-import { toast } from 'react-toastify';
 import { useState, useEffect } from 'react';
+import { toast } from 'react-toastify';
 import API from '../api';
+import ConfirmDialog from './ConfirmDialog';
+import { useConfirm } from '../hooks/useConfirm';
 
 function AppointmentList() {
   const [appointments, setAppointments] = useState([]);
@@ -11,6 +13,8 @@ function AppointmentList() {
   });
   const [editingId, setEditingId] = useState(null);
   const [error, setError] = useState('');
+
+  const { confirm, confirmState, handleConfirm, handleCancel } = useConfirm();
 
   useEffect(() => {
     fetchAppointments();
@@ -39,21 +43,22 @@ function AppointmentList() {
   };
 
   const handleSubmit = async (e) => {
-  e.preventDefault();
-  try {
-    if (editingId) {
-      await API.put(`/appointments/${editingId}`, form);
-      toast.success('Janji temu berhasil diperbarui!');
-    } else {
-      await API.post('/appointments', form);
-      toast.success('Janji temu berhasil ditambahkan!');
+    e.preventDefault();
+    try {
+      if (editingId) {
+        await API.put(`/appointments/${editingId}`, form);
+        toast.success('Janji temu berhasil diperbarui!');
+      } else {
+        await API.post('/appointments', form);
+        toast.success('Janji temu berhasil ditambahkan!');
+      }
+      resetForm();
+      fetchAppointments();
+    } catch (err) {
+      const msg = err.response?.data?.error || err.message;
+      toast.error('Gagal menyimpan: ' + msg);
     }
-    resetForm();
-    fetchAppointments();
-  } catch (err) {
-    toast.error('Gagal menyimpan: ' + err.message);
-  }
-};
+  };
 
   const handleEdit = (appt) => {
     setForm({
@@ -68,28 +73,35 @@ function AppointmentList() {
   };
 
   const handleStatusChange = async (id, status) => {
-  try {
-    await API.patch(`/appointments/${id}/status`, { status });
-    setAppointments((prev) =>
-      prev.map((a) => (a.id === id ? { ...a, status } : a))
-    );
-    toast.success('Status berhasil diubah!');
-  } catch (err) {
-    toast.error('Gagal update status: ' + err.message);
-  }
-};
+    try {
+      await API.patch(`/appointments/${id}/status`, { status });
+      setAppointments((prev) =>
+        prev.map((a) => (a.id === id ? { ...a, status } : a))
+      );
+      toast.success('Status berhasil diubah!');
+    } catch (err) {
+      const msg = err.response?.data?.error || err.message;
+      toast.error('Gagal update status: ' + msg);
+    }
+  };
 
-  const handleDelete = async (id) => {
-  if (!window.confirm('Yakin ingin menghapus janji temu ini?')) return;
-  try {
-    await API.delete(`/appointments/${id}`);
-    if (editingId === id) resetForm();
-    fetchAppointments();
-    toast.success('Janji temu berhasil dihapus!');
-  } catch (err) {
-    toast.error('Gagal menghapus: ' + err.message);
-  }
-};
+  const handleDelete = (id) => {
+    confirm(
+      'Yakin ingin menghapus janji temu ini?',
+      async () => {
+        try {
+          await API.delete(`/appointments/${id}`);
+          if (editingId === id) resetForm();
+          fetchAppointments();
+          toast.success('Janji temu berhasil dihapus!');
+        } catch (err) {
+          const msg = err.response?.data?.error || err.message;
+          toast.error(msg);
+        }
+      },
+      'Hapus Janji Temu'
+    );
+  };
 
   const resetForm = () => {
     setForm({ pet_id: '', vet_id: '', tanggal: '', keluhan: '', status: 'menunggu' });
@@ -207,6 +219,14 @@ function AppointmentList() {
           )}
         </tbody>
       </table>
+
+      <ConfirmDialog
+        isOpen={confirmState.isOpen}
+        title={confirmState.title}
+        message={confirmState.message}
+        onConfirm={handleConfirm}
+        onCancel={handleCancel}
+      />
     </div>
   );
 }

@@ -43,7 +43,8 @@ function OwnerList() {
       resetForm();
       fetchOwners();
     } catch (err) {
-      toast.error('Gagal menyimpan: ' + err.message);
+      const msg = err.response?.data?.error || err.message;
+      toast.error('Gagal menyimpan: ' + msg);
     }
   };
 
@@ -67,7 +68,8 @@ function OwnerList() {
           fetchOwners();
           toast.success('Pemilik berhasil dihapus!');
         } catch (err) {
-          toast.error('Gagal menghapus: ' + err.message);
+          const msg = err.response?.data?.error || err.message;
+          toast.error(msg);
         }
       },
       'Hapus Pemilik'
@@ -133,9 +135,7 @@ function OwnerList() {
           </thead>
           <tbody>
             {owners.length === 0 ? (
-              <tr>
-                <td colSpan="5" style={{ textAlign: 'center' }}>Belum ada data</td>
-              </tr>
+              <tr><td colSpan="5" style={{ textAlign: 'center' }}>Belum ada data</td></tr>
             ) : (
               owners.map((owner) => (
                 <tr key={owner.id} className={editingId === owner.id ? 'row-editing' : ''}>
@@ -144,12 +144,8 @@ function OwnerList() {
                   <td>{owner.telepon}</td>
                   <td>{owner.alamat}</td>
                   <td className="action-cell">
-                    <button className="btn btn-edit" onClick={() => handleEdit(owner)}>
-                      Edit
-                    </button>
-                    <button className="btn btn-danger" onClick={() => handleDelete(owner.id)}>
-                      Hapus
-                    </button>
+                    <button className="btn btn-edit" onClick={() => handleEdit(owner)}>Edit</button>
+                    <button className="btn btn-danger" onClick={() => handleDelete(owner.id)}>Hapus</button>
                   </td>
                 </tr>
               ))

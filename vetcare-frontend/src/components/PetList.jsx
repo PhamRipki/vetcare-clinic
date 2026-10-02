@@ -1,6 +1,8 @@
-import { toast } from 'react-toastify';
 import { useState, useEffect } from 'react';
+import { toast } from 'react-toastify';
 import API from '../api';
+import ConfirmDialog from './ConfirmDialog';
+import { useConfirm } from '../hooks/useConfirm';
 
 function PetList() {
   const [pets, setPets] = useState([]);
@@ -11,6 +13,8 @@ function PetList() {
   const [editingId, setEditingId] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+
+  const { confirm, confirmState, handleConfirm, handleCancel } = useConfirm();
 
   useEffect(() => {
     fetchPets();
@@ -40,25 +44,26 @@ function PetList() {
   };
 
   const handleSubmit = async (e) => {
-  e.preventDefault();
-  try {
-    const payload = {
-      ...form,
-      tanggal_lahir: form.tanggal_lahir || null,
-    };
-    if (editingId) {
-      await API.put(`/pets/${editingId}`, payload);
-      toast.success('Hewan berhasil diperbarui!');
-    } else {
-      await API.post('/pets', payload);
-      toast.success('Hewan berhasil ditambahkan!');
+    e.preventDefault();
+    try {
+      const payload = {
+        ...form,
+        tanggal_lahir: form.tanggal_lahir || null,
+      };
+      if (editingId) {
+        await API.put(`/pets/${editingId}`, payload);
+        toast.success('Hewan berhasil diperbarui!');
+      } else {
+        await API.post('/pets', payload);
+        toast.success('Hewan berhasil ditambahkan!');
+      }
+      resetForm();
+      fetchPets();
+    } catch (err) {
+      const msg = err.response?.data?.error || err.message;
+      toast.error('Gagal menyimpan: ' + msg);
     }
-    resetForm();
-    fetchPets();
-  } catch (err) {
-    toast.error('Gagal menyimpan: ' + err.message);
-  }
-};
+  };
 
   const handleEdit = (pet) => {
     setForm({
@@ -72,17 +77,23 @@ function PetList() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  const handleDelete = async (id) => {
-  if (!window.confirm('Yakin ingin menghapus data hewan ini?')) return;
-  try {
-    await API.delete(`/pets/${id}`);
-    if (editingId === id) resetForm();
-    fetchPets();
-    toast.success('Hewan berhasil dihapus!');
-  } catch (err) {
-    toast.error('Gagal menghapus: ' + err.message);
-  }
-};
+  const handleDelete = (id) => {
+    confirm(
+      'Yakin ingin menghapus data hewan ini?',
+      async () => {
+        try {
+          await API.delete(`/pets/${id}`);
+          if (editingId === id) resetForm();
+          fetchPets();
+          toast.success('Hewan berhasil dihapus!');
+        } catch (err) {
+          const msg = err.response?.data?.error || err.message;
+          toast.error(msg);
+        }
+      },
+      'Hapus Hewan'
+    );
+  };
 
   const resetForm = () => {
     setForm({ owner_id: '', nama: '', jenis: 'Kucing', ras: '', tanggal_lahir: '' });
@@ -190,6 +201,14 @@ function PetList() {
           </tbody>
         </table>
       )}
+
+      <ConfirmDialog
+        isOpen={confirmState.isOpen}
+        title={confirmState.title}
+        message={confirmState.message}
+        onConfirm={handleConfirm}
+        onCancel={handleCancel}
+      />
     </div>
   );
 }
