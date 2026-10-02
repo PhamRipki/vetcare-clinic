@@ -1,6 +1,8 @@
-import { toast } from 'react-toastify';
 import { useState, useEffect } from 'react';
+import { toast } from 'react-toastify';
 import API from '../api';
+import ConfirmDialog from './ConfirmDialog';
+import { useConfirm } from '../hooks/useConfirm';
 
 function OwnerList() {
   const [owners, setOwners] = useState([]);
@@ -8,6 +10,8 @@ function OwnerList() {
   const [editingId, setEditingId] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+
+  const { confirm, confirmState, handleConfirm, handleCancel } = useConfirm();
 
   useEffect(() => {
     fetchOwners();
@@ -27,21 +31,21 @@ function OwnerList() {
   };
 
   const handleSubmit = async (e) => {
-  e.preventDefault();
-  try {
-    if (editingId) {
-      await API.put(`/owners/${editingId}`, form);
-      toast.success('Pemilik berhasil diperbarui!');
-    } else {
-      await API.post('/owners', form);
-      toast.success('Pemilik berhasil ditambahkan!');
+    e.preventDefault();
+    try {
+      if (editingId) {
+        await API.put(`/owners/${editingId}`, form);
+        toast.success('Pemilik berhasil diperbarui!');
+      } else {
+        await API.post('/owners', form);
+        toast.success('Pemilik berhasil ditambahkan!');
+      }
+      resetForm();
+      fetchOwners();
+    } catch (err) {
+      toast.error('Gagal menyimpan: ' + err.message);
     }
-    resetForm();
-    fetchOwners();
-  } catch (err) {
-    toast.error('Gagal menyimpan: ' + err.message);
-  }
-};
+  };
 
   const handleEdit = (owner) => {
     setForm({
@@ -53,17 +57,22 @@ function OwnerList() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  const handleDelete = async (id) => {
-  if (!window.confirm('Yakin ingin menghapus pemilik ini? Hewan peliharaannya akan ikut terhapus.')) return;
-  try {
-    await API.delete(`/owners/${id}`);
-    if (editingId === id) resetForm();
-    fetchOwners();
-    toast.success('Pemilik berhasil dihapus!');
-  } catch (err) {
-    toast.error('Gagal menghapus: ' + err.message);
-  }
-};
+  const handleDelete = (id) => {
+    confirm(
+      'Yakin ingin menghapus pemilik ini? Hewan peliharaannya akan ikut terhapus.',
+      async () => {
+        try {
+          await API.delete(`/owners/${id}`);
+          if (editingId === id) resetForm();
+          fetchOwners();
+          toast.success('Pemilik berhasil dihapus!');
+        } catch (err) {
+          toast.error('Gagal menghapus: ' + err.message);
+        }
+      },
+      'Hapus Pemilik'
+    );
+  };
 
   const resetForm = () => {
     setForm({ nama: '', telepon: '', alamat: '' });
@@ -124,7 +133,9 @@ function OwnerList() {
           </thead>
           <tbody>
             {owners.length === 0 ? (
-              <tr><td colSpan="5" style={{ textAlign: 'center' }}>Belum ada data</td></tr>
+              <tr>
+                <td colSpan="5" style={{ textAlign: 'center' }}>Belum ada data</td>
+              </tr>
             ) : (
               owners.map((owner) => (
                 <tr key={owner.id} className={editingId === owner.id ? 'row-editing' : ''}>
@@ -146,6 +157,14 @@ function OwnerList() {
           </tbody>
         </table>
       )}
+
+      <ConfirmDialog
+        isOpen={confirmState.isOpen}
+        title={confirmState.title}
+        message={confirmState.message}
+        onConfirm={handleConfirm}
+        onCancel={handleCancel}
+      />
     </div>
   );
 }
