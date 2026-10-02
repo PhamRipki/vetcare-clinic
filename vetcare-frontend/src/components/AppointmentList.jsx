@@ -1,3 +1,4 @@
+import { toast } from 'react-toastify';
 import { useState, useEffect } from 'react';
 import API from '../api';
 
@@ -38,19 +39,21 @@ function AppointmentList() {
   };
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
-    try {
-      if (editingId) {
-        await API.put(`/appointments/${editingId}`, form);
-      } else {
-        await API.post('/appointments', form);
-      }
-      resetForm();
-      fetchAppointments();
-    } catch (err) {
-      setError('Gagal menyimpan: ' + err.message);
+  e.preventDefault();
+  try {
+    if (editingId) {
+      await API.put(`/appointments/${editingId}`, form);
+      toast.success('Janji temu berhasil diperbarui!');
+    } else {
+      await API.post('/appointments', form);
+      toast.success('Janji temu berhasil ditambahkan!');
     }
-  };
+    resetForm();
+    fetchAppointments();
+  } catch (err) {
+    toast.error('Gagal menyimpan: ' + err.message);
+  }
+};
 
   const handleEdit = (appt) => {
     setForm({
@@ -65,26 +68,28 @@ function AppointmentList() {
   };
 
   const handleStatusChange = async (id, status) => {
-    try {
-      await API.patch(`/appointments/${id}/status`, { status });
-      setAppointments((prev) =>
-        prev.map((a) => (a.id === id ? { ...a, status } : a))
-      );
-    } catch (err) {
-      setError('Gagal update status: ' + err.message);
-    }
-  };
+  try {
+    await API.patch(`/appointments/${id}/status`, { status });
+    setAppointments((prev) =>
+      prev.map((a) => (a.id === id ? { ...a, status } : a))
+    );
+    toast.success('Status berhasil diubah!');
+  } catch (err) {
+    toast.error('Gagal update status: ' + err.message);
+  }
+};
 
   const handleDelete = async (id) => {
-    if (!window.confirm('Yakin ingin menghapus janji temu ini?')) return;
-    try {
-      await API.delete(`/appointments/${id}`);
-      if (editingId === id) resetForm();
-      fetchAppointments();
-    } catch (err) {
-      setError('Gagal menghapus: ' + err.message);
-    }
-  };
+  if (!window.confirm('Yakin ingin menghapus janji temu ini?')) return;
+  try {
+    await API.delete(`/appointments/${id}`);
+    if (editingId === id) resetForm();
+    fetchAppointments();
+    toast.success('Janji temu berhasil dihapus!');
+  } catch (err) {
+    toast.error('Gagal menghapus: ' + err.message);
+  }
+};
 
   const resetForm = () => {
     setForm({ pet_id: '', vet_id: '', tanggal: '', keluhan: '', status: 'menunggu' });

@@ -1,3 +1,4 @@
+import { toast } from 'react-toastify';
 import { useState, useEffect } from 'react';
 import API from '../api';
 
@@ -26,19 +27,21 @@ function OwnerList() {
   };
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
-    try {
-      if (editingId) {
-        await API.put(`/owners/${editingId}`, form);
-      } else {
-        await API.post('/owners', form);
-      }
-      resetForm();
-      fetchOwners();
-    } catch (err) {
-      setError('Gagal menyimpan: ' + err.message);
+  e.preventDefault();
+  try {
+    if (editingId) {
+      await API.put(`/owners/${editingId}`, form);
+      toast.success('Pemilik berhasil diperbarui!');
+    } else {
+      await API.post('/owners', form);
+      toast.success('Pemilik berhasil ditambahkan!');
     }
-  };
+    resetForm();
+    fetchOwners();
+  } catch (err) {
+    toast.error('Gagal menyimpan: ' + err.message);
+  }
+};
 
   const handleEdit = (owner) => {
     setForm({
@@ -51,15 +54,16 @@ function OwnerList() {
   };
 
   const handleDelete = async (id) => {
-    if (!window.confirm('Yakin ingin menghapus pemilik ini? Hewan peliharaannya akan ikut terhapus.')) return;
-    try {
-      await API.delete(`/owners/${id}`);
-      if (editingId === id) resetForm();
-      fetchOwners();
-    } catch (err) {
-      setError('Gagal menghapus: ' + err.message);
-    }
-  };
+  if (!window.confirm('Yakin ingin menghapus pemilik ini? Hewan peliharaannya akan ikut terhapus.')) return;
+  try {
+    await API.delete(`/owners/${id}`);
+    if (editingId === id) resetForm();
+    fetchOwners();
+    toast.success('Pemilik berhasil dihapus!');
+  } catch (err) {
+    toast.error('Gagal menghapus: ' + err.message);
+  }
+};
 
   const resetForm = () => {
     setForm({ nama: '', telepon: '', alamat: '' });

@@ -1,3 +1,4 @@
+import { toast } from 'react-toastify';
 import { useState, useEffect } from 'react';
 import API from '../api';
 
@@ -22,19 +23,21 @@ function VetList() {
   };
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
-    try {
-      if (editingId) {
-        await API.put(`/vets/${editingId}`, form);
-      } else {
-        await API.post('/vets', form);
-      }
-      resetForm();
-      fetchVets();
-    } catch (err) {
-      setError('Gagal menyimpan: ' + err.message);
+  e.preventDefault();
+  try {
+    if (editingId) {
+      await API.put(`/vets/${editingId}`, form);
+      toast.success('Dokter berhasil diperbarui!');
+    } else {
+      await API.post('/vets', form);
+      toast.success('Dokter berhasil ditambahkan!');
     }
-  };
+    resetForm();
+    fetchVets();
+  } catch (err) {
+    toast.error('Gagal menyimpan: ' + err.message);
+  }
+};
 
   const handleEdit = (vet) => {
     setForm({
@@ -47,15 +50,16 @@ function VetList() {
   };
 
   const handleDelete = async (id) => {
-    if (!window.confirm('Yakin ingin menghapus dokter ini?')) return;
-    try {
-      await API.delete(`/vets/${id}`);
-      if (editingId === id) resetForm();
-      fetchVets();
-    } catch (err) {
-      setError('Gagal menghapus: ' + err.message);
-    }
-  };
+  if (!window.confirm('Yakin ingin menghapus dokter ini?')) return;
+  try {
+    await API.delete(`/vets/${id}`);
+    if (editingId === id) resetForm();
+    fetchVets();
+    toast.success('Dokter berhasil dihapus!');
+  } catch (err) {
+    toast.error('Gagal menghapus: ' + err.message);
+  }
+};
 
   const resetForm = () => {
     setForm({ nama: '', spesialisasi: '', telepon: '' });

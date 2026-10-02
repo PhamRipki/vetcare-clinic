@@ -1,3 +1,4 @@
+import { toast } from 'react-toastify';
 import { useState, useEffect } from 'react';
 import API from '../api';
 
@@ -39,23 +40,25 @@ function PetList() {
   };
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
-    try {
-      const payload = {
-        ...form,
-        tanggal_lahir: form.tanggal_lahir || null,
-      };
-      if (editingId) {
-        await API.put(`/pets/${editingId}`, payload);
-      } else {
-        await API.post('/pets', payload);
-      }
-      resetForm();
-      fetchPets();
-    } catch (err) {
-      setError('Gagal menyimpan: ' + err.message);
+  e.preventDefault();
+  try {
+    const payload = {
+      ...form,
+      tanggal_lahir: form.tanggal_lahir || null,
+    };
+    if (editingId) {
+      await API.put(`/pets/${editingId}`, payload);
+      toast.success('Hewan berhasil diperbarui!');
+    } else {
+      await API.post('/pets', payload);
+      toast.success('Hewan berhasil ditambahkan!');
     }
-  };
+    resetForm();
+    fetchPets();
+  } catch (err) {
+    toast.error('Gagal menyimpan: ' + err.message);
+  }
+};
 
   const handleEdit = (pet) => {
     setForm({
@@ -70,15 +73,16 @@ function PetList() {
   };
 
   const handleDelete = async (id) => {
-    if (!window.confirm('Yakin ingin menghapus data hewan ini?')) return;
-    try {
-      await API.delete(`/pets/${id}`);
-      if (editingId === id) resetForm();
-      fetchPets();
-    } catch (err) {
-      setError('Gagal menghapus: ' + err.message);
-    }
-  };
+  if (!window.confirm('Yakin ingin menghapus data hewan ini?')) return;
+  try {
+    await API.delete(`/pets/${id}`);
+    if (editingId === id) resetForm();
+    fetchPets();
+    toast.success('Hewan berhasil dihapus!');
+  } catch (err) {
+    toast.error('Gagal menghapus: ' + err.message);
+  }
+};
 
   const resetForm = () => {
     setForm({ owner_id: '', nama: '', jenis: 'Kucing', ras: '', tanggal_lahir: '' });

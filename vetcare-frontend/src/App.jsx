@@ -1,4 +1,7 @@
 import { BrowserRouter as Router, Routes, Route, NavLink } from 'react-router-dom';
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+
 import Dashboard from './components/Dashboard';
 import OwnerList from './components/OwnerList';
 import PetList from './components/PetList';
@@ -43,6 +46,16 @@ function App() {
           </Routes>
         </main>
       </div>
+
+      <ToastContainer
+        position="top-right"
+        autoClose={3000}
+        hideProgressBar={false}
+        newestOnTop
+        closeOnClick
+        pauseOnHover
+        theme="light"
+      />
     </Router>
   );
 }
