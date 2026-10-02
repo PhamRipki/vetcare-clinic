@@ -134,11 +134,13 @@ function AppointmentList() {
         <div className="search-input-wrap">
           <Search size={16} />
           <input
-            type="text"
-            placeholder="Cari hewan, dokter, atau keluhan..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-          />
+  type="text"
+  placeholder="Cari ..."
+  value={search}
+  onChange={(e) => setSearch(e.target.value)}
+  spellCheck={false}
+  autoComplete="off"
+/>
         </div>
         <select value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)}>
           <option value="">Semua Status</option>

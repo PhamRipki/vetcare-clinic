@@ -66,28 +66,18 @@ function Dashboard() {
 
       {/* Search bar (visual) */}
       <div className="dash-search">
-        <div className="search-input-wrap">
-          <Search size={16} />
-          <input
-            type="text"
-            placeholder="Cari pemilik, hewan, atau dokter..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-          />
-        </div>
-        <select>
-          <option>Bulan</option>
-          <option>Januari</option>
-          <option>Februari</option>
-          <option>Maret</option>
-        </select>
-        <select>
-          <option>Tahun</option>
-          <option>2026</option>
-          <option>2025</option>
-        </select>
-        <button className="btn btn-primary">Terapkan</button>
-      </div>
+  <div className="search-input-wrap">
+    <Search size={16} />
+    <input
+      type="text"
+      placeholder="Cari pemilik, hewan, atau dokter..."
+      value={search}
+      onChange={(e) => setSearch(e.target.value)}
+      spellCheck={false}
+      autoComplete="off"
+    />
+  </div>
+</div>
 
       {/* Stat Cards */}
       <div className="stats-grid">

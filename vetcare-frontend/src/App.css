@@ -863,3 +863,49 @@ body {
   margin-bottom: 0.75rem;
   font-style: italic;
 }
+
+/* ===== FIX: Force visible text in inputs & selects ===== */
+:root {
+  color-scheme: light;
+}
+
+.search-input-wrap input,
+.search-bar select,
+.form-inline input,
+.form-inline select,
+.dash-search input,
+.dash-search select {
+  color: #111827 !important;
+  -webkit-text-fill-color: #111827;
+  caret-color: #0f766e;
+}
+
+.search-input-wrap input::placeholder,
+.form-inline input::placeholder,
+.dash-search input::placeholder {
+  color: #9ca3af !important;
+  -webkit-text-fill-color: #9ca3af;
+  opacity: 1;
+}
+
+/* Fix untuk browser dark mode otomatis */
+@media (prefers-color-scheme: dark) {
+  input,
+  select,
+  textarea {
+    color: #111827 !important;
+    -webkit-text-fill-color: #111827;
+    background-color: #ffffff !important;
+  }
+  
+  input::placeholder,
+  textarea::placeholder {
+    color: #9ca3af !important;
+    -webkit-text-fill-color: #9ca3af;
+  }
+  
+  select option {
+    color: #111827;
+    background: #ffffff;
+  }
+}

@@ -102,6 +102,8 @@ function VetList() {
             placeholder="Cari nama atau spesialisasi..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
+            spellCheck={false}
+            autoComplete="off"
           />
         </div>
       </div>

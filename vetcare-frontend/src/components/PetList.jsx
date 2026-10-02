@@ -130,6 +130,8 @@ function PetList() {
             placeholder="Cari nama, ras, atau pemilik..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
+            spellCheck={false}
+            autoComplete="off"
           />
         </div>
         <select value={filterJenis} onChange={(e) => setFilterJenis(e.target.value)}>
