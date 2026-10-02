@@ -1,0 +1,30 @@
+# Dependencies
+node_modules/
+*/node_modules/
+
+# Environment variables (PENTING - berisi password!)
+.env
+*.env
+!*.env.example
+
+# Build output
+dist/
+build/
+vetcare-frontend/dist/
+
+# Logs
+*.log
+npm-debug.log*
+
+# IDE
+.vscode/
+.idea/
+*.swp
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Cache
+.npm
+.cache/
