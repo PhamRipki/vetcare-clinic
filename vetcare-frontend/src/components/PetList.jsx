@@ -165,8 +165,10 @@ function PetList() {
       </form>
 
       {loading ? (
-        <p>Loading...</p>
-      ) : (
+  <div className="spinner-container">
+    <div className="spinner"></div>
+  </div>
+) : (
         <table className="data-table">
           <thead>
             <tr>
