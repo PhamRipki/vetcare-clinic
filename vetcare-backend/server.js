@@ -256,7 +256,7 @@ app.delete('/api/appointments/:id', async (req, res) => {
 // ==================== DASHBOARD ====================
 app.get('/api/dashboard/stats', async (req, res) => {
   try {
-    const [owners, pets, vets, appointments, byStatus, upcoming] = await Promise.all([
+    const [owners, pets, vets, appointments, byStatus, upcoming, inventory, lowStock, expiring] = await Promise.all([
       pool.query('SELECT COUNT(*) FROM owners'),
       pool.query('SELECT COUNT(*) FROM pets'),
       pool.query('SELECT COUNT(*) FROM vets'),
@@ -277,7 +277,40 @@ app.get('/api/dashboard/stats', async (req, res) => {
         ORDER BY a.tanggal ASC 
         LIMIT 5
       `),
+      // Inventory aggregate
+      pool.query(`
+        SELECT 
+          COUNT(*) AS total_items,
+          COALESCE(SUM(stok * harga), 0) AS total_value,
+          COUNT(*) FILTER (WHERE stok < 10) AS low_stock_count,
+          COUNT(*) FILTER (WHERE tanggal_kadaluarsa IS NOT NULL 
+                            AND tanggal_kadaluarsa < NOW()) AS expired_count,
+          COUNT(*) FILTER (WHERE tanggal_kadaluarsa IS NOT NULL 
+                            AND tanggal_kadaluarsa >= NOW() 
+                            AND tanggal_kadaluarsa <= NOW() + INTERVAL '30 days') AS expiring_count
+        FROM medicines
+      `),
+      // Low stock items detail (top 5)
+      pool.query(`
+        SELECT id, nama, stok, satuan, kategori 
+        FROM medicines 
+        WHERE stok < 10 
+        ORDER BY stok ASC 
+        LIMIT 5
+      `),
+      // Expiring soon items detail (top 5)
+      pool.query(`
+        SELECT id, nama, stok, satuan, tanggal_kadaluarsa,
+               (tanggal_kadaluarsa - NOW()) AS days_left
+        FROM medicines 
+        WHERE tanggal_kadaluarsa IS NOT NULL 
+          AND tanggal_kadaluarsa <= NOW() + INTERVAL '30 days'
+        ORDER BY tanggal_kadaluarsa ASC 
+        LIMIT 5
+      `),
     ]);
+
+    const inv = inventory.rows[0];
 
     res.json({
       total_owners: parseInt(owners.rows[0].count),
@@ -286,6 +319,15 @@ app.get('/api/dashboard/stats', async (req, res) => {
       total_appointments: parseInt(appointments.rows[0].count),
       appointments_by_status: byStatus.rows,
       upcoming_appointments: upcoming.rows,
+      inventory: {
+        total_items: parseInt(inv.total_items),
+        total_value: parseFloat(inv.total_value),
+        low_stock_count: parseInt(inv.low_stock_count),
+        expired_count: parseInt(inv.expired_count),
+        expiring_count: parseInt(inv.expiring_count),
+      },
+      low_stock_items: lowStock.rows,
+      expiring_items: expiring.rows,
     });
   } catch (err) {
     res.status(500).json({ error: err.message });
