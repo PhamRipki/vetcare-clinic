@@ -122,12 +122,8 @@ function VetList() {
                 <td>{vet.spesialisasi}</td>
                 <td>{vet.telepon}</td>
                 <td className="action-cell">
-                  <button className="btn btn-edit" onClick={() => handleEdit(vet)}>
-                    Edit
-                  </button>
-                  <button className="btn btn-danger" onClick={() => handleDelete(vet.id)}>
-                    Hapus
-                  </button>
+                  <button className="btn btn-edit" onClick={() => handleEdit(vet)}>Edit</button>
+                  <button className="btn btn-danger" onClick={() => handleDelete(vet.id)}>Hapus</button>
                 </td>
               </tr>
             ))
