@@ -1,4 +1,5 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
+import { Search } from 'lucide-react';
 import { toast } from 'react-toastify';
 import API from '../api';
 import ConfirmDialog from './ConfirmDialog';
@@ -13,6 +14,8 @@ function PetList() {
   const [editingId, setEditingId] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [search, setSearch] = useState('');
+  const [filterJenis, setFilterJenis] = useState('');
 
   const { confirm, confirmState, handleConfirm, handleCancel } = useConfirm();
 
@@ -20,6 +23,19 @@ function PetList() {
     fetchPets();
     fetchOwners();
   }, []);
+
+  const filteredPets = useMemo(() => {
+    const q = search.toLowerCase().trim();
+    return pets.filter((p) => {
+      const matchSearch =
+        !q ||
+        p.nama?.toLowerCase().includes(q) ||
+        p.ras?.toLowerCase().includes(q) ||
+        p.owner_nama?.toLowerCase().includes(q);
+      const matchJenis = !filterJenis || p.jenis === filterJenis;
+      return matchSearch && matchJenis;
+    });
+  }, [pets, search, filterJenis]);
 
   const fetchPets = async () => {
     setLoading(true);
@@ -106,6 +122,33 @@ function PetList() {
 
       {error && <div className="error-box">{error}</div>}
 
+      <div className="search-bar">
+        <div className="search-input-wrap">
+          <Search size={16} />
+          <input
+            type="text"
+            placeholder="Cari nama, ras, atau pemilik..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
+        </div>
+        <select value={filterJenis} onChange={(e) => setFilterJenis(e.target.value)}>
+          <option value="">Semua Jenis</option>
+          <option value="Kucing">Kucing</option>
+          <option value="Anjing">Anjing</option>
+          <option value="Kelinci">Kelinci</option>
+          <option value="Burung">Burung</option>
+          <option value="Hamster">Hamster</option>
+          <option value="Lainnya">Lainnya</option>
+        </select>
+      </div>
+
+      {(search || filterJenis) && (
+        <div className="search-result-info">
+          Menampilkan {filteredPets.length} dari {pets.length} hewan
+        </div>
+      )}
+
       <form onSubmit={handleSubmit} className={`form-inline ${editingId ? 'form-editing' : ''}`}>
         {editingId && (
           <div className="editing-badge">✏️ Mode Edit — ID #{editingId}</div>
@@ -165,10 +208,10 @@ function PetList() {
       </form>
 
       {loading ? (
-  <div className="spinner-container">
-    <div className="spinner"></div>
-  </div>
-) : (
+        <div className="spinner-container">
+          <div className="spinner"></div>
+        </div>
+      ) : (
         <table className="data-table">
           <thead>
             <tr>
@@ -182,10 +225,14 @@ function PetList() {
             </tr>
           </thead>
           <tbody>
-            {pets.length === 0 ? (
-              <tr><td colSpan="7" style={{ textAlign: 'center' }}>Belum ada data</td></tr>
+            {filteredPets.length === 0 ? (
+              <tr>
+                <td colSpan="7" style={{ textAlign: 'center' }}>
+                  {search || filterJenis ? 'Tidak ada hasil untuk pencarian ini' : 'Belum ada data'}
+                </td>
+              </tr>
             ) : (
-              pets.map((pet) => (
+              filteredPets.map((pet) => (
                 <tr key={pet.id} className={editingId === pet.id ? 'row-editing' : ''}>
                   <td>{pet.id}</td>
                   <td>{pet.nama}</td>

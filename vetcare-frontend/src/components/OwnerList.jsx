@@ -1,4 +1,5 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
+import { Search } from 'lucide-react';
 import { toast } from 'react-toastify';
 import API from '../api';
 import ConfirmDialog from './ConfirmDialog';
@@ -10,12 +11,23 @@ function OwnerList() {
   const [editingId, setEditingId] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [search, setSearch] = useState('');
 
   const { confirm, confirmState, handleConfirm, handleCancel } = useConfirm();
 
   useEffect(() => {
     fetchOwners();
   }, []);
+
+  const filteredOwners = useMemo(() => {
+    const q = search.toLowerCase().trim();
+    if (!q) return owners;
+    return owners.filter((o) =>
+      o.nama?.toLowerCase().includes(q) ||
+      o.telepon?.toLowerCase().includes(q) ||
+      o.alamat?.toLowerCase().includes(q)
+    );
+  }, [owners, search]);
 
   const fetchOwners = async () => {
     setLoading(true);
@@ -87,6 +99,24 @@ function OwnerList() {
 
       {error && <div className="error-box">{error}</div>}
 
+      <div className="search-bar">
+        <div className="search-input-wrap">
+          <Search size={16} />
+          <input
+            type="text"
+            placeholder="Cari nama, telepon, atau alamat..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
+        </div>
+      </div>
+
+      {search && (
+        <div className="search-result-info">
+          Menampilkan {filteredOwners.length} dari {owners.length} pemilik
+        </div>
+      )}
+
       <form onSubmit={handleSubmit} className={`form-inline ${editingId ? 'form-editing' : ''}`}>
         {editingId && (
           <div className="editing-badge">✏️ Mode Edit — ID #{editingId}</div>
@@ -120,11 +150,11 @@ function OwnerList() {
         )}
       </form>
 
-{loading ? (
-  <div className="spinner-container">
-    <div className="spinner"></div>
-  </div>
-) : (
+      {loading ? (
+        <div className="spinner-container">
+          <div className="spinner"></div>
+        </div>
+      ) : (
         <table className="data-table">
           <thead>
             <tr>
@@ -136,10 +166,14 @@ function OwnerList() {
             </tr>
           </thead>
           <tbody>
-            {owners.length === 0 ? (
-              <tr><td colSpan="5" style={{ textAlign: 'center' }}>Belum ada data</td></tr>
+            {filteredOwners.length === 0 ? (
+              <tr>
+                <td colSpan="5" style={{ textAlign: 'center' }}>
+                  {search ? 'Tidak ada hasil untuk pencarian ini' : 'Belum ada data'}
+                </td>
+              </tr>
             ) : (
-              owners.map((owner) => (
+              filteredOwners.map((owner) => (
                 <tr key={owner.id} className={editingId === owner.id ? 'row-editing' : ''}>
                   <td>{owner.id}</td>
                   <td>{owner.nama}</td>

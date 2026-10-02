@@ -1,4 +1,5 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
+import { Search } from 'lucide-react';
 import { toast } from 'react-toastify';
 import API from '../api';
 import ConfirmDialog from './ConfirmDialog';
@@ -13,6 +14,8 @@ function AppointmentList() {
   });
   const [editingId, setEditingId] = useState(null);
   const [error, setError] = useState('');
+  const [search, setSearch] = useState('');
+  const [filterStatus, setFilterStatus] = useState('');
 
   const { confirm, confirmState, handleConfirm, handleCancel } = useConfirm();
 
@@ -21,6 +24,19 @@ function AppointmentList() {
     fetchPets();
     fetchVets();
   }, []);
+
+  const filteredAppointments = useMemo(() => {
+    const q = search.toLowerCase().trim();
+    return appointments.filter((a) => {
+      const matchSearch =
+        !q ||
+        a.pet_nama?.toLowerCase().includes(q) ||
+        a.vet_nama?.toLowerCase().includes(q) ||
+        a.keluhan?.toLowerCase().includes(q);
+      const matchStatus = !filterStatus || a.status === filterStatus;
+      return matchSearch && matchStatus;
+    });
+  }, [appointments, search, filterStatus]);
 
   const fetchAppointments = async () => {
     try {
@@ -114,6 +130,30 @@ function AppointmentList() {
 
       {error && <div className="error-box">{error}</div>}
 
+      <div className="search-bar">
+        <div className="search-input-wrap">
+          <Search size={16} />
+          <input
+            type="text"
+            placeholder="Cari hewan, dokter, atau keluhan..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
+        </div>
+        <select value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)}>
+          <option value="">Semua Status</option>
+          <option value="menunggu">Menunggu</option>
+          <option value="selesai">Selesai</option>
+          <option value="batal">Batal</option>
+        </select>
+      </div>
+
+      {(search || filterStatus) && (
+        <div className="search-result-info">
+          Menampilkan {filteredAppointments.length} dari {appointments.length} janji temu
+        </div>
+      )}
+
       <form onSubmit={handleSubmit} className={`form-inline ${editingId ? 'form-editing' : ''}`}>
         {editingId && (
           <div className="editing-badge">✏️ Mode Edit — ID #{editingId}</div>
@@ -189,10 +229,14 @@ function AppointmentList() {
           </tr>
         </thead>
         <tbody>
-          {appointments.length === 0 ? (
-            <tr><td colSpan="7" style={{ textAlign: 'center' }}>Belum ada data</td></tr>
+          {filteredAppointments.length === 0 ? (
+            <tr>
+              <td colSpan="7" style={{ textAlign: 'center' }}>
+                {search || filterStatus ? 'Tidak ada hasil untuk pencarian ini' : 'Belum ada data'}
+              </td>
+            </tr>
           ) : (
-            appointments.map((a) => (
+            filteredAppointments.map((a) => (
               <tr key={a.id} className={editingId === a.id ? 'row-editing' : ''}>
                 <td>{a.id}</td>
                 <td>{a.pet_nama}</td>

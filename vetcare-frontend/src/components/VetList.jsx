@@ -1,4 +1,5 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
+import { Search } from 'lucide-react';
 import { toast } from 'react-toastify';
 import API from '../api';
 import ConfirmDialog from './ConfirmDialog';
@@ -9,12 +10,22 @@ function VetList() {
   const [form, setForm] = useState({ nama: '', spesialisasi: '', telepon: '' });
   const [editingId, setEditingId] = useState(null);
   const [error, setError] = useState('');
+  const [search, setSearch] = useState('');
 
   const { confirm, confirmState, handleConfirm, handleCancel } = useConfirm();
 
   useEffect(() => {
     fetchVets();
   }, []);
+
+  const filteredVets = useMemo(() => {
+    const q = search.toLowerCase().trim();
+    if (!q) return vets;
+    return vets.filter((v) =>
+      v.nama?.toLowerCase().includes(q) ||
+      v.spesialisasi?.toLowerCase().includes(q)
+    );
+  }, [vets, search]);
 
   const fetchVets = async () => {
     try {
@@ -83,6 +94,24 @@ function VetList() {
 
       {error && <div className="error-box">{error}</div>}
 
+      <div className="search-bar">
+        <div className="search-input-wrap">
+          <Search size={16} />
+          <input
+            type="text"
+            placeholder="Cari nama atau spesialisasi..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
+        </div>
+      </div>
+
+      {search && (
+        <div className="search-result-info">
+          Menampilkan {filteredVets.length} dari {vets.length} dokter
+        </div>
+      )}
+
       <form onSubmit={handleSubmit} className={`form-inline ${editingId ? 'form-editing' : ''}`}>
         {editingId && (
           <div className="editing-badge">✏️ Mode Edit — ID #{editingId}</div>
@@ -127,10 +156,14 @@ function VetList() {
           </tr>
         </thead>
         <tbody>
-          {vets.length === 0 ? (
-            <tr><td colSpan="5" style={{ textAlign: 'center' }}>Belum ada data</td></tr>
+          {filteredVets.length === 0 ? (
+            <tr>
+              <td colSpan="5" style={{ textAlign: 'center' }}>
+                {search ? 'Tidak ada hasil untuk pencarian ini' : 'Belum ada data'}
+              </td>
+            </tr>
           ) : (
-            vets.map((vet) => (
+            filteredVets.map((vet) => (
               <tr key={vet.id} className={editingId === vet.id ? 'row-editing' : ''}>
                 <td>{vet.id}</td>
                 <td>{vet.nama}</td>
