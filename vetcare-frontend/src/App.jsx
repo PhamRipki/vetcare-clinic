@@ -1,6 +1,15 @@
 import { BrowserRouter as Router, Routes, Route, NavLink } from 'react-router-dom';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import {
+  LayoutDashboard,
+  Users,
+  PawPrint,
+  Stethoscope,
+  CalendarCheck,
+  Bell,
+  HelpCircle,
+} from 'lucide-react';
 
 import Dashboard from './components/Dashboard';
 import OwnerList from './components/OwnerList';
@@ -12,39 +21,93 @@ import './App.css';
 function App() {
   return (
     <Router>
-      <div className="app-container">
-        <header className="app-header">
-          <h1>🏥 VetCare Clinic</h1>
-          <p>Sistem Manajemen Klinik Hewan</p>
+      <div className="app-layout">
+        {/* ===== SIDEBAR ===== */}
+        <aside className="sidebar">
+          <div className="sidebar-brand">
+            <div className="brand-logo">
+              <PawPrint size={24} strokeWidth={2.5} />
+            </div>
+            <div className="brand-text">
+              <h1>VetCare Admin</h1>
+              <p>Klinik Hewan</p>
+            </div>
+          </div>
 
-          <nav className="navbar">
-            <NavLink to="/" end className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}>
-              📊 Dashboard
+          <nav className="sidebar-nav">
+            <NavLink
+              to="/"
+              end
+              className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}
+            >
+              <LayoutDashboard size={18} />
+              <span>Dashboard</span>
             </NavLink>
-            <NavLink to="/owners" className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}>
-              👤 Pemilik
+
+            <NavLink
+              to="/owners"
+              className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}
+            >
+              <Users size={18} />
+              <span>Pemilik</span>
             </NavLink>
-            <NavLink to="/pets" className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}>
-              🐾 Hewan
+
+            <NavLink
+              to="/pets"
+              className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}
+            >
+              <PawPrint size={18} />
+              <span>Hewan</span>
             </NavLink>
-            <NavLink to="/vets" className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}>
-              👨‍⚕️ Dokter
+
+            <NavLink
+              to="/vets"
+              className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}
+            >
+              <Stethoscope size={18} />
+              <span>Dokter</span>
             </NavLink>
-            <NavLink to="/appointments" className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}>
-              📅 Janji Temu
+
+            <NavLink
+              to="/appointments"
+              className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}
+            >
+              <CalendarCheck size={18} />
+              <span>Janji Temu</span>
             </NavLink>
           </nav>
-        </header>
+        </aside>
 
-        <main>
-          <Routes>
-            <Route path="/" element={<Dashboard />} />
-            <Route path="/owners" element={<OwnerList />} />
-            <Route path="/pets" element={<PetList />} />
-            <Route path="/vets" element={<VetList />} />
-            <Route path="/appointments" element={<AppointmentList />} />
-          </Routes>
-        </main>
+        {/* ===== MAIN WRAPPER ===== */}
+        <div className="main-wrapper">
+          {/* Top Bar */}
+          <header className="top-bar">
+            <div className="top-bar-spacer"></div>
+            <div className="top-bar-right">
+              <a href="#feedback" className="top-link">Feedback</a>
+              <a href="#support" className="top-link">Support</a>
+              <button className="icon-btn" aria-label="Notifikasi">
+                <Bell size={18} />
+                <span className="badge-dot"></span>
+              </button>
+              <button className="icon-btn" aria-label="Bantuan">
+                <HelpCircle size={18} />
+              </button>
+              <div className="avatar">P</div>
+            </div>
+          </header>
+
+          {/* Content */}
+          <main className="main-content">
+            <Routes>
+              <Route path="/" element={<Dashboard />} />
+              <Route path="/owners" element={<OwnerList />} />
+              <Route path="/pets" element={<PetList />} />
+              <Route path="/vets" element={<VetList />} />
+              <Route path="/appointments" element={<AppointmentList />} />
+            </Routes>
+          </main>
+        </div>
       </div>
 
       <ToastContainer

@@ -1,10 +1,25 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import {
+  Users,
+  PawPrint,
+  Stethoscope,
+  CalendarCheck,
+  Plus,
+  Search,
+  TrendingUp,
+  AlertTriangle,
+  Activity,
+  UserPlus,
+} from 'lucide-react';
 import API from '../api';
 
 function Dashboard() {
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [search, setSearch] = useState('');
+  const navigate = useNavigate();
 
   useEffect(() => {
     fetchStats();
@@ -21,148 +36,272 @@ function Dashboard() {
     }
   };
 
-  if (loading) return <div className="page"><p>Loading dashboard...</p></div>;
+  if (loading) return <div className="page"><p>Memuat dashboard...</p></div>;
   if (error) return <div className="page"><div className="error-box">{error}</div></div>;
   if (!stats) return null;
 
-  const statusLabels = {
-    menunggu: { label: 'Menunggu', color: '#f59e0b', bg: '#fef3c7' },
-    selesai: { label: 'Selesai', color: '#10b981', bg: '#d1fae5' },
-    batal: { label: 'Batal', color: '#ef4444', bg: '#fee2e2' },
+  const statusColors = {
+    menunggu: { label: 'Menunggu', bg: '#fef3c7', color: '#92400e' },
+    selesai: { label: 'Selesai', bg: '#dbeafe', color: '#1e40af' },
+    batal: { label: 'Batal', bg: '#fee2e2', color: '#991b1b' },
   };
+
+  const totalAppts = parseInt(stats.total_appointments) || 0;
+  const pendingCount =
+    stats.appointments_by_status.find((s) => s.status === 'menunggu')?.count || 0;
 
   return (
     <div className="dashboard">
-      <h2>📊 Dashboard</h2>
-      <p className="dashboard-subtitle">Ringkasan aktivitas klinik</p>
+      {/* Header */}
+      <div className="dash-header">
+        <h1>Overview</h1>
+        <button
+          className="btn btn-primary"
+          onClick={() => navigate('/appointments')}
+        >
+          <Plus size={16} />
+          Janji Temu Baru
+        </button>
+      </div>
 
-      {/* Kartu Statistik */}
+      {/* Search bar (visual) */}
+      <div className="dash-search">
+        <div className="search-input-wrap">
+          <Search size={16} />
+          <input
+            type="text"
+            placeholder="Cari pemilik, hewan, atau dokter..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
+        </div>
+        <select>
+          <option>Bulan</option>
+          <option>Januari</option>
+          <option>Februari</option>
+          <option>Maret</option>
+        </select>
+        <select>
+          <option>Tahun</option>
+          <option>2026</option>
+          <option>2025</option>
+        </select>
+        <button className="btn btn-primary">Terapkan</button>
+      </div>
+
+      {/* Stat Cards */}
       <div className="stats-grid">
-        <div className="stat-card stat-owners">
-          <div className="stat-icon">👤</div>
-          <div className="stat-content">
-            <div className="stat-value">{stats.total_owners}</div>
-            <div className="stat-label">Pemilik</div>
+        <div className="stat-card">
+          <div className="stat-card-top">
+            <span className="stat-label">Pemilik</span>
+            <div className="stat-card-icon blue">
+              <Users size={16} />
+            </div>
+          </div>
+          <div className="stat-value">{stats.total_owners}</div>
+          <div className="stat-footer">
+            <span className="stat-trend">
+              <TrendingUp size={12} /> Terdaftar
+            </span>
           </div>
         </div>
 
-        <div className="stat-card stat-pets">
-          <div className="stat-icon">🐾</div>
-          <div className="stat-content">
-            <div className="stat-value">{stats.total_pets}</div>
-            <div className="stat-label">Hewan</div>
+        <div className="stat-card">
+          <div className="stat-card-top">
+            <span className="stat-label">Hewan Peliharaan</span>
+            <div className="stat-card-icon green">
+              <PawPrint size={16} />
+            </div>
           </div>
+          <div className="stat-value">{stats.total_pets}</div>
+          <div className="stat-footer">Aktif di klinik</div>
         </div>
 
-        <div className="stat-card stat-vets">
-          <div className="stat-icon">👨‍⚕️</div>
-          <div className="stat-content">
-            <div className="stat-value">{stats.total_vets}</div>
-            <div className="stat-label">Dokter</div>
+        <div className="stat-card">
+          <div className="stat-card-top">
+            <span className="stat-label">Dokter</span>
+            <div className="stat-card-icon green">
+              <Stethoscope size={16} />
+            </div>
           </div>
+          <div className="stat-value">{stats.total_vets}</div>
+          <div className="stat-footer">Siap melayani</div>
         </div>
 
-        <div className="stat-card stat-appts">
-          <div className="stat-icon">📅</div>
-          <div className="stat-content">
-            <div className="stat-value">{stats.total_appointments}</div>
-            <div className="stat-label">Janji Temu</div>
+        <div className="stat-card">
+          <div className="stat-card-top">
+            <span className="stat-label">Janji Temu</span>
+            <div className="stat-card-icon yellow">
+              <CalendarCheck size={16} />
+            </div>
+          </div>
+          <div className="stat-value">{stats.total_appointments}</div>
+          <div className="stat-footer">
+            <strong style={{ color: 'var(--warning)' }}>{pendingCount}</strong>
+            &nbsp;menunggu konfirmasi
           </div>
         </div>
       </div>
 
-      {/* Status Breakdown */}
-      <div className="dashboard-section">
-        <h3>Status Janji Temu</h3>
-        <div className="status-breakdown">
-          {stats.appointments_by_status.length === 0 ? (
-            <p className="empty-text">Belum ada data janji temu</p>
-          ) : (
-            stats.appointments_by_status.map((s) => {
-              const info = statusLabels[s.status] || {
-                label: s.status,
-                color: '#64748b',
-                bg: '#e2e8f0',
-              };
-              const percentage =
-                stats.total_appointments > 0
-                  ? Math.round((parseInt(s.count) / stats.total_appointments) * 100)
-                  : 0;
+      {/* Two column: Schedule + Activity */}
+      <div className="dash-grid-2">
+        {/* Janji Temu Mendatang */}
+        <div className="dash-panel">
+          <div className="dash-panel-header">
+            <h3>Janji Temu Mendatang</h3>
+            <a href="/appointments">Lihat Semua</a>
+          </div>
 
-              return (
-                <div key={s.status} className="status-item">
+          {stats.upcoming_appointments.length === 0 ? (
+            <p className="empty-text">Tidak ada janji temu mendatang</p>
+          ) : (
+            <table className="data-table">
+              <thead>
+                <tr>
+                  <th>Hewan</th>
+                  <th>Dokter</th>
+                  <th>Keluhan</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                {stats.upcoming_appointments.map((a) => {
+                  const sc = statusColors[a.status] || statusColors.menunggu;
+                  return (
+                    <tr key={a.id}>
+                      <td>
+                        <div style={{ fontWeight: 600 }}>{a.pet_nama}</div>
+                        <div style={{ fontSize: '0.75rem', color: 'var(--text-light)' }}>
+                          {new Date(a.tanggal).toLocaleString('id-ID', {
+                            day: '2-digit',
+                            month: 'short',
+                            hour: '2-digit',
+                            minute: '2-digit',
+                          })}
+                        </div>
+                      </td>
+                      <td>{a.vet_nama}</td>
+                      <td>{a.keluhan || '-'}</td>
+                      <td>
+                        <span
+                          className="status-pill"
+                          style={{ background: sc.bg, color: sc.color }}
+                        >
+                          {sc.label}
+                        </span>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          )}
+        </div>
+
+        {/* Ringkasan Status */}
+        <div className="dash-panel">
+          <div className="dash-panel-header">
+            <h3>Status Janji Temu</h3>
+          </div>
+
+          {stats.appointments_by_status.length === 0 ? (
+            <p className="empty-text">Belum ada data</p>
+          ) : (
+            <div className="activity-list">
+              {stats.appointments_by_status.map((s) => {
+                const sc = statusColors[s.status] || statusColors.menunggu;
+                const count = parseInt(s.count);
+                const pct = totalAppts > 0 ? Math.round((count / totalAppts) * 100) : 0;
+                return (
                   <div
-                    className="status-badge"
-                    style={{ background: info.bg, color: info.color }}
+                    key={s.status}
+                    className="activity-item"
+                    style={{ alignItems: 'center' }}
                   >
-                    {info.label}
-                  </div>
-                  <div className="status-bar-container">
                     <div
-                      className="status-bar"
-                      style={{
-                        width: `${percentage}%`,
-                        background: info.color,
-                      }}
-                    />
+                      className="activity-icon"
+                      style={{ background: sc.bg, color: sc.color }}
+                    >
+                      <Activity size={16} />
+                    </div>
+                    <div className="activity-content">
+                      <p className="activity-text">
+                        <strong>{sc.label}</strong>
+                      </p>
+                      <div
+                        style={{
+                          height: '6px',
+                          background: 'var(--border-light)',
+                          borderRadius: '3px',
+                          marginTop: '0.4rem',
+                          overflow: 'hidden',
+                        }}
+                      >
+                        <div
+                          style={{
+                            height: '100%',
+                            width: `${pct}%`,
+                            background: sc.color,
+                            borderRadius: '3px',
+                            transition: 'width 0.4s',
+                          }}
+                        />
+                      </div>
+                    </div>
+                    <div style={{ textAlign: 'right', minWidth: '50px' }}>
+                      <div style={{ fontWeight: 700, fontSize: '0.95rem' }}>{count}</div>
+                      <div style={{ fontSize: '0.7rem', color: 'var(--text-light)' }}>
+                        {pct}%
+                      </div>
+                    </div>
                   </div>
-                  <div className="status-count">
-                    {s.count} <span className="status-pct">({percentage}%)</span>
-                  </div>
-                </div>
-              );
-            })
+                );
+              })}
+            </div>
           )}
         </div>
       </div>
 
-      {/* Upcoming Appointments */}
-      <div className="dashboard-section">
-        <h3>📅 Janji Temu Mendatang</h3>
-        {stats.upcoming_appointments.length === 0 ? (
-          <p className="empty-text">Tidak ada janji temu mendatang</p>
-        ) : (
-          <table className="data-table">
-            <thead>
-              <tr>
-                <th>Tanggal</th>
-                <th>Hewan</th>
-                <th>Dokter</th>
-                <th>Keluhan</th>
-                <th>Status</th>
-              </tr>
-            </thead>
-            <tbody>
-              {stats.upcoming_appointments.map((a) => (
-                <tr key={a.id}>
-                  <td>
-                    {new Date(a.tanggal).toLocaleString('id-ID', {
-                      day: '2-digit',
-                      month: 'short',
-                      year: 'numeric',
-                      hour: '2-digit',
-                      minute: '2-digit',
-                    })}
-                  </td>
-                  <td>{a.pet_nama}</td>
-                  <td>{a.vet_nama}</td>
-                  <td>{a.keluhan}</td>
-                  <td>
-                    <span
-                      className="status-pill"
-                      style={{
-                        background: statusLabels[a.status]?.bg || '#e2e8f0',
-                        color: statusLabels[a.status]?.color || '#64748b',
-                      }}
-                    >
-                      {statusLabels[a.status]?.label || a.status}
-                    </span>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        )}
+      {/* Aktivitas Info */}
+      <div className="dash-panel" style={{ marginTop: '1rem' }}>
+        <div className="dash-panel-header">
+          <h3>Aktivitas Terbaru</h3>
+        </div>
+        <div className="activity-list">
+          <div className="activity-item">
+            <div className="activity-icon">
+              <UserPlus size={16} />
+            </div>
+            <div className="activity-content">
+              <p className="activity-text">
+                <strong>{stats.total_owners}</strong> pemilik terdaftar di sistem
+              </p>
+              <div className="activity-time">Terdata di database</div>
+            </div>
+          </div>
+          <div className="activity-item">
+            <div className="activity-icon">
+              <PawPrint size={16} />
+            </div>
+            <div className="activity-content">
+              <p className="activity-text">
+                <strong>{stats.total_pets}</strong> hewan peliharaan aktif
+              </p>
+              <div className="activity-time">Dari semua pemilik</div>
+            </div>
+          </div>
+          <div className="activity-item">
+            <div className="activity-icon">
+              <AlertTriangle size={16} />
+            </div>
+            <div className="activity-content">
+              <p className="activity-text">
+                <strong>{pendingCount}</strong> janji temu menunggu konfirmasi
+              </p>
+              <div className="activity-time">Perlu ditindaklanjuti</div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );

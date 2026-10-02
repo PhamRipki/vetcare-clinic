@@ -81,7 +81,7 @@ function OwnerList() {
 
   return (
     <div className="page">
-      <h2>👤 Daftar Pemilik Hewan</h2>
+      <h2>Daftar Pemilik Hewan</h2>
 
       {error && <div className="error-box">{error}</div>}
 

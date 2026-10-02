@@ -68,7 +68,7 @@ function VetList() {
 
   return (
     <div className="page">
-      <h2>👨‍⚕️ Daftar Dokter Hewan</h2>
+      <h2>Daftar Dokter Hewan</h2>
 
       {error && <div className="error-box">{error}</div>}
 

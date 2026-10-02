@@ -91,7 +91,7 @@ function PetList() {
 
   return (
     <div className="page">
-      <h2>🐾 Daftar Hewan Peliharaan</h2>
+      <h2>Daftar Hewan Peliharaan</h2>
 
       {error && <div className="error-box">{error}</div>}
 

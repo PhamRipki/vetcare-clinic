@@ -98,7 +98,7 @@ function AppointmentList() {
 
   return (
     <div className="page">
-      <h2>📅 Daftar Janji Temu</h2>
+      <h2>Daftar Janji Temu</h2>
 
       {error && <div className="error-box">{error}</div>}
 
