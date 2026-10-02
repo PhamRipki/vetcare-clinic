@@ -1044,3 +1044,39 @@ body {
   background: #450a0a;
   color: #fca5a5;
 }
+
+/* ===== INVENTORY ===== */
+.kategori-badge {
+  display: inline-block;
+  padding: 0.2rem 0.6rem;
+  background: var(--primary-bg);
+  color: var(--primary);
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.stock-alert {
+  display: inline-block;
+  margin-left: 0.4rem;
+  padding: 0.15rem 0.5rem;
+  background: var(--danger-bg);
+  color: #991b1b;
+  border-radius: 4px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+/* Dark mode overrides */
+[data-theme="dark"] .kategori-badge {
+  background: var(--primary-light);
+  color: var(--primary);
+}
+
+[data-theme="dark"] .stock-alert {
+  background: var(--danger-bg);
+  color: #fca5a5;
+}

@@ -1,3 +1,5 @@
+import { Package } from 'lucide-react';
+import InventoryList from './components/InventoryList';
 import { BrowserRouter as Router, Routes, Route, NavLink } from 'react-router-dom';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
@@ -80,6 +82,13 @@ function App() {
               <CalendarCheck size={18} />
               <span>Janji Temu</span>
             </NavLink>
+            <NavLink
+  to="/inventory"
+  className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}
+>
+  <Package size={18} />
+  <span>Inventory</span>
+</NavLink>
           </nav>
         </aside>
 
@@ -122,6 +131,7 @@ function App() {
               <Route path="/pets" element={<PetList />} />
               <Route path="/vets" element={<VetList />} />
               <Route path="/appointments" element={<AppointmentList />} />
+              <Route path="/inventory" element={<InventoryList />} />
             </Routes>
           </main>
         </div>

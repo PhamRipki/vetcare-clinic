@@ -292,6 +292,56 @@ app.get('/api/dashboard/stats', async (req, res) => {
   }
 });
 
+// ==================== MEDICINES / INVENTORY ====================
+app.get('/api/medicines', async (req, res) => {
+  try {
+    const result = await pool.query('SELECT * FROM medicines ORDER BY id DESC');
+    res.json(result.rows);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.post('/api/medicines', async (req, res) => {
+  const { nama, kategori, stok, satuan, harga, tanggal_kadaluarsa, deskripsi } = req.body;
+  try {
+    const result = await pool.query(
+      `INSERT INTO medicines (nama, kategori, stok, satuan, harga, tanggal_kadaluarsa, deskripsi) 
+       VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *`,
+      [nama, kategori, stok, satuan, harga || 0, tanggal_kadaluarsa || null, deskripsi]
+    );
+    res.status(201).json(result.rows[0]);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.put('/api/medicines/:id', async (req, res) => {
+  const { id } = req.params;
+  const { nama, kategori, stok, satuan, harga, tanggal_kadaluarsa, deskripsi } = req.body;
+  try {
+    const result = await pool.query(
+      `UPDATE medicines SET nama=$1, kategori=$2, stok=$3, satuan=$4, harga=$5, 
+       tanggal_kadaluarsa=$6, deskripsi=$7 WHERE id=$8 RETURNING *`,
+      [nama, kategori, stok, satuan, harga || 0, tanggal_kadaluarsa || null, deskripsi, id]
+    );
+    if (result.rows.length === 0) return res.status(404).json({ error: 'Obat tidak ditemukan' });
+    res.json(result.rows[0]);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.delete('/api/medicines/:id', async (req, res) => {
+  try {
+    const result = await pool.query('DELETE FROM medicines WHERE id=$1 RETURNING *', [req.params.id]);
+    if (result.rows.length === 0) return res.status(404).json({ error: 'Obat tidak ditemukan' });
+    res.json({ message: 'Obat berhasil dihapus', data: result.rows[0] });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // ==================== START SERVER ====================
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
