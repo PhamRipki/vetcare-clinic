@@ -6,8 +6,9 @@ function AppointmentList() {
   const [pets, setPets] = useState([]);
   const [vets, setVets] = useState([]);
   const [form, setForm] = useState({
-    pet_id: '', vet_id: '', tanggal: '', keluhan: ''
+    pet_id: '', vet_id: '', tanggal: '', keluhan: '', status: 'menunggu'
   });
+  const [editingId, setEditingId] = useState(null);
   const [error, setError] = useState('');
 
   useEffect(() => {
@@ -39,18 +40,36 @@ function AppointmentList() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      await API.post('/appointments', form);
-      setForm({ pet_id: '', vet_id: '', tanggal: '', keluhan: '' });
+      if (editingId) {
+        await API.put(`/appointments/${editingId}`, form);
+      } else {
+        await API.post('/appointments', form);
+      }
+      resetForm();
       fetchAppointments();
     } catch (err) {
-      setError('Gagal menambah janji temu: ' + err.message);
+      setError('Gagal menyimpan: ' + err.message);
     }
+  };
+
+  const handleEdit = (appt) => {
+    setForm({
+      pet_id: appt.pet_id,
+      vet_id: appt.vet_id,
+      tanggal: appt.tanggal ? appt.tanggal.slice(0, 16) : '',
+      keluhan: appt.keluhan || '',
+      status: appt.status || 'menunggu',
+    });
+    setEditingId(appt.id);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const handleStatusChange = async (id, status) => {
     try {
       await API.patch(`/appointments/${id}/status`, { status });
-      fetchAppointments();
+      setAppointments((prev) =>
+        prev.map((a) => (a.id === id ? { ...a, status } : a))
+      );
     } catch (err) {
       setError('Gagal update status: ' + err.message);
     }
@@ -60,10 +79,16 @@ function AppointmentList() {
     if (!window.confirm('Yakin ingin menghapus janji temu ini?')) return;
     try {
       await API.delete(`/appointments/${id}`);
+      if (editingId === id) resetForm();
       fetchAppointments();
     } catch (err) {
       setError('Gagal menghapus: ' + err.message);
     }
+  };
+
+  const resetForm = () => {
+    setForm({ pet_id: '', vet_id: '', tanggal: '', keluhan: '', status: 'menunggu' });
+    setEditingId(null);
   };
 
   return (
@@ -72,7 +97,11 @@ function AppointmentList() {
 
       {error && <div className="error-box">{error}</div>}
 
-      <form onSubmit={handleSubmit} className="form-inline">
+      <form onSubmit={handleSubmit} className={`form-inline ${editingId ? 'form-editing' : ''}`}>
+        {editingId && (
+          <div className="editing-badge">✏️ Mode Edit — ID #{editingId}</div>
+        )}
+
         <select
           value={form.pet_id}
           onChange={(e) => setForm({ ...form, pet_id: e.target.value })}
@@ -110,7 +139,24 @@ function AppointmentList() {
           onChange={(e) => setForm({ ...form, keluhan: e.target.value })}
         />
 
-        <button type="submit" className="btn btn-primary">+ Tambah</button>
+        <select
+          value={form.status}
+          onChange={(e) => setForm({ ...form, status: e.target.value })}
+        >
+          <option value="menunggu">Menunggu</option>
+          <option value="selesai">Selesai</option>
+          <option value="batal">Batal</option>
+        </select>
+
+        <button type="submit" className="btn btn-primary">
+          {editingId ? '💾 Update' : '+ Tambah'}
+        </button>
+
+        {editingId && (
+          <button type="button" className="btn btn-secondary" onClick={resetForm}>
+            ✖ Batal
+          </button>
+        )}
       </form>
 
       <table className="data-table">
@@ -130,7 +176,7 @@ function AppointmentList() {
             <tr><td colSpan="7" style={{ textAlign: 'center' }}>Belum ada data</td></tr>
           ) : (
             appointments.map((a) => (
-              <tr key={a.id}>
+              <tr key={a.id} className={editingId === a.id ? 'row-editing' : ''}>
                 <td>{a.id}</td>
                 <td>{a.pet_nama}</td>
                 <td>{a.vet_nama}</td>
@@ -147,10 +193,9 @@ function AppointmentList() {
                     <option value="batal">Batal</option>
                   </select>
                 </td>
-                <td>
-                  <button className="btn btn-danger" onClick={() => handleDelete(a.id)}>
-                    Hapus
-                  </button>
+                <td className="action-cell">
+                  <button className="btn btn-edit" onClick={() => handleEdit(a)}>Edit</button>
+                  <button className="btn btn-danger" onClick={() => handleDelete(a.id)}>Hapus</button>
                 </td>
               </tr>
             ))

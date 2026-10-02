@@ -7,6 +7,7 @@ function PetList() {
   const [form, setForm] = useState({
     owner_id: '', nama: '', jenis: 'Kucing', ras: '', tanggal_lahir: ''
   });
+  const [editingId, setEditingId] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -40,22 +41,48 @@ function PetList() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      await API.post('/pets', form);
-      setForm({ owner_id: '', nama: '', jenis: 'Kucing', ras: '', tanggal_lahir: '' });
+      const payload = {
+        ...form,
+        tanggal_lahir: form.tanggal_lahir || null,
+      };
+      if (editingId) {
+        await API.put(`/pets/${editingId}`, payload);
+      } else {
+        await API.post('/pets', payload);
+      }
+      resetForm();
       fetchPets();
     } catch (err) {
-      setError('Gagal menambah hewan: ' + err.message);
+      setError('Gagal menyimpan: ' + err.message);
     }
+  };
+
+  const handleEdit = (pet) => {
+    setForm({
+      owner_id: pet.owner_id,
+      nama: pet.nama,
+      jenis: pet.jenis,
+      ras: pet.ras || '',
+      tanggal_lahir: pet.tanggal_lahir ? pet.tanggal_lahir.slice(0, 10) : '',
+    });
+    setEditingId(pet.id);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const handleDelete = async (id) => {
     if (!window.confirm('Yakin ingin menghapus data hewan ini?')) return;
     try {
       await API.delete(`/pets/${id}`);
+      if (editingId === id) resetForm();
       fetchPets();
     } catch (err) {
       setError('Gagal menghapus: ' + err.message);
     }
+  };
+
+  const resetForm = () => {
+    setForm({ owner_id: '', nama: '', jenis: 'Kucing', ras: '', tanggal_lahir: '' });
+    setEditingId(null);
   };
 
   return (
@@ -64,7 +91,11 @@ function PetList() {
 
       {error && <div className="error-box">{error}</div>}
 
-      <form onSubmit={handleSubmit} className="form-inline">
+      <form onSubmit={handleSubmit} className={`form-inline ${editingId ? 'form-editing' : ''}`}>
+        {editingId && (
+          <div className="editing-badge">✏️ Mode Edit — ID #{editingId}</div>
+        )}
+
         <select
           value={form.owner_id}
           onChange={(e) => setForm({ ...form, owner_id: e.target.value })}
@@ -107,7 +138,15 @@ function PetList() {
           onChange={(e) => setForm({ ...form, tanggal_lahir: e.target.value })}
         />
 
-        <button type="submit" className="btn btn-primary">+ Tambah</button>
+        <button type="submit" className="btn btn-primary">
+          {editingId ? '💾 Update' : '+ Tambah'}
+        </button>
+
+        {editingId && (
+          <button type="button" className="btn btn-secondary" onClick={resetForm}>
+            ✖ Batal
+          </button>
+        )}
       </form>
 
       {loading ? (
@@ -130,17 +169,16 @@ function PetList() {
               <tr><td colSpan="7" style={{ textAlign: 'center' }}>Belum ada data</td></tr>
             ) : (
               pets.map((pet) => (
-                <tr key={pet.id}>
+                <tr key={pet.id} className={editingId === pet.id ? 'row-editing' : ''}>
                   <td>{pet.id}</td>
                   <td>{pet.nama}</td>
                   <td>{pet.jenis}</td>
                   <td>{pet.ras}</td>
                   <td>{pet.owner_nama}</td>
                   <td>{pet.tanggal_lahir ? pet.tanggal_lahir.slice(0, 10) : '-'}</td>
-                  <td>
-                    <button className="btn btn-danger" onClick={() => handleDelete(pet.id)}>
-                      Hapus
-                    </button>
+                  <td className="action-cell">
+                    <button className="btn btn-edit" onClick={() => handleEdit(pet)}>Edit</button>
+                    <button className="btn btn-danger" onClick={() => handleDelete(pet.id)}>Hapus</button>
                   </td>
                 </tr>
               ))

@@ -88,6 +88,23 @@ app.post('/api/pets', async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
+app.put('/api/pets/:id', async (req, res) => {
+  const { id } = req.params;
+  const { owner_id, nama, jenis, ras, tanggal_lahir } = req.body;
+  try {
+    const result = await pool.query(
+      `UPDATE pets SET owner_id=$1, nama=$2, jenis=$3, ras=$4, tanggal_lahir=$5 
+       WHERE id=$6 RETURNING *`,
+      [owner_id, nama, jenis, ras, tanggal_lahir || null, id]
+    );
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Hewan tidak ditemukan' });
+    }
+    res.json(result.rows[0]);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
 
 app.delete('/api/pets/:id', async (req, res) => {
   try {
@@ -174,6 +191,23 @@ app.post('/api/appointments', async (req, res) => {
       [pet_id, vet_id, tanggal, keluhan]
     );
     res.status(201).json(result.rows[0]);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+app.put('/api/appointments/:id', async (req, res) => {
+  const { id } = req.params;
+  const { pet_id, vet_id, tanggal, keluhan, status } = req.body;
+  try {
+    const result = await pool.query(
+      `UPDATE appointments SET pet_id=$1, vet_id=$2, tanggal=$3, keluhan=$4, status=$5 
+       WHERE id=$6 RETURNING *`,
+      [pet_id, vet_id, tanggal, keluhan, status, id]
+    );
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Janji temu tidak ditemukan' });
+    }
+    res.json(result.rows[0]);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
