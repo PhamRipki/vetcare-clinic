@@ -9,6 +9,8 @@ import {
   CalendarCheck,
   Bell,
   HelpCircle,
+  Moon,
+  Sun,
 } from 'lucide-react';
 
 import Dashboard from './components/Dashboard';
@@ -16,9 +18,12 @@ import OwnerList from './components/OwnerList';
 import PetList from './components/PetList';
 import VetList from './components/VetList';
 import AppointmentList from './components/AppointmentList';
+import { useTheme } from './contexts/ThemeContext';
 import './App.css';
 
 function App() {
+  const { theme, toggleTheme } = useTheme();
+
   return (
     <Router>
       <div className="app-layout">
@@ -86,13 +91,25 @@ function App() {
             <div className="top-bar-right">
               <a href="#feedback" className="top-link">Feedback</a>
               <a href="#support" className="top-link">Support</a>
+
               <button className="icon-btn" aria-label="Notifikasi">
                 <Bell size={18} />
                 <span className="badge-dot"></span>
               </button>
+
               <button className="icon-btn" aria-label="Bantuan">
                 <HelpCircle size={18} />
               </button>
+
+              <button
+                className="icon-btn"
+                onClick={toggleTheme}
+                aria-label={theme === 'light' ? 'Aktifkan dark mode' : 'Aktifkan light mode'}
+                title={theme === 'light' ? 'Dark Mode' : 'Light Mode'}
+              >
+                {theme === 'light' ? <Moon size={18} /> : <Sun size={18} />}
+              </button>
+
               <div className="avatar">P</div>
             </div>
           </header>
