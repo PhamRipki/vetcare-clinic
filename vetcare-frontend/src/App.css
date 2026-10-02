@@ -234,3 +234,156 @@ body {
   gap: 0.4rem;
   flex-wrap: wrap;
 }
+
+/* ===== Dashboard ===== */
+.dashboard {
+  background: white;
+  padding: 1.5rem 2rem;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.dashboard h2 {
+  margin-top: 0;
+  color: #0369a1;
+}
+
+.dashboard-subtitle {
+  color: #64748b;
+  font-size: 0.9rem;
+  margin-top: -0.5rem;
+  margin-bottom: 1.5rem;
+}
+
+/* Kartu Statistik */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.stat-card {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1.2rem;
+  border-radius: 12px;
+  background: #f8fafc;
+  border-left: 4px solid #94a3b8;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.stat-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
+}
+
+.stat-owners { border-left-color: #0ea5e9; background: linear-gradient(135deg, #e0f2fe, #f0f9ff); }
+.stat-pets   { border-left-color: #10b981; background: linear-gradient(135deg, #d1fae5, #ecfdf5); }
+.stat-vets   { border-left-color: #8b5cf6; background: linear-gradient(135deg, #ede9fe, #f5f3ff); }
+.stat-appts  { border-left-color: #f59e0b; background: linear-gradient(135deg, #fef3c7, #fffbeb); }
+
+.stat-icon {
+  font-size: 2rem;
+}
+
+.stat-value {
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: #1e293b;
+  line-height: 1;
+}
+
+.stat-label {
+  font-size: 0.85rem;
+  color: #64748b;
+  margin-top: 0.3rem;
+}
+
+/* Section */
+.dashboard-section {
+  margin-top: 2rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid #e5e7eb;
+}
+
+.dashboard-section h3 {
+  margin-top: 0;
+  color: #334155;
+  font-size: 1.1rem;
+}
+
+/* Status Breakdown */
+.status-breakdown {
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+}
+
+.status-item {
+  display: grid;
+  grid-template-columns: 100px 1fr 100px;
+  align-items: center;
+  gap: 1rem;
+}
+
+.status-badge {
+  padding: 0.4rem 0.8rem;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-align: center;
+}
+
+.status-bar-container {
+  height: 10px;
+  background: #f1f5f9;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.status-bar {
+  height: 100%;
+  border-radius: 10px;
+  transition: width 0.6s ease;
+}
+
+.status-count {
+  text-align: right;
+  font-weight: 700;
+  color: #1e293b;
+  font-size: 0.95rem;
+}
+
+.status-pct {
+  color: #94a3b8;
+  font-weight: 400;
+  font-size: 0.85rem;
+}
+
+/* Status pill (di tabel upcoming) */
+.status-pill {
+  display: inline-block;
+  padding: 0.25rem 0.7rem;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.empty-text {
+  color: #94a3b8;
+  font-style: italic;
+  padding: 0.5rem 0;
+}
+
+/* Responsive */
+@media (max-width: 600px) {
+  .status-item {
+    grid-template-columns: 1fr;
+    gap: 0.4rem;
+  }
+  .status-count {
+    text-align: left;
+  }
+}

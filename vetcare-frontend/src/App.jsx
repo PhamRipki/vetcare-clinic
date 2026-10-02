@@ -1,4 +1,5 @@
 import { BrowserRouter as Router, Routes, Route, NavLink } from 'react-router-dom';
+import Dashboard from './components/Dashboard';
 import OwnerList from './components/OwnerList';
 import PetList from './components/PetList';
 import VetList from './components/VetList';
@@ -15,6 +16,9 @@ function App() {
 
           <nav className="navbar">
             <NavLink to="/" end className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}>
+              📊 Dashboard
+            </NavLink>
+            <NavLink to="/owners" className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}>
               👤 Pemilik
             </NavLink>
             <NavLink to="/pets" className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}>
@@ -31,7 +35,8 @@ function App() {
 
         <main>
           <Routes>
-            <Route path="/" element={<OwnerList />} />
+            <Route path="/" element={<Dashboard />} />
+            <Route path="/owners" element={<OwnerList />} />
             <Route path="/pets" element={<PetList />} />
             <Route path="/vets" element={<VetList />} />
             <Route path="/appointments" element={<AppointmentList />} />

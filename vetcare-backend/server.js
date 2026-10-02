@@ -236,6 +236,45 @@ app.delete('/api/appointments/:id', async (req, res) => {
   }
 });
 
+// ==================== DASHBOARD ====================
+app.get('/api/dashboard/stats', async (req, res) => {
+  try {
+    const [owners, pets, vets, appointments, byStatus, upcoming] = await Promise.all([
+      pool.query('SELECT COUNT(*) FROM owners'),
+      pool.query('SELECT COUNT(*) FROM pets'),
+      pool.query('SELECT COUNT(*) FROM vets'),
+      pool.query('SELECT COUNT(*) FROM appointments'),
+      pool.query(`
+        SELECT status, COUNT(*) AS count 
+        FROM appointments 
+        GROUP BY status 
+        ORDER BY status
+      `),
+      pool.query(`
+        SELECT a.id, a.tanggal, a.keluhan, a.status, 
+               p.nama AS pet_nama, v.nama AS vet_nama 
+        FROM appointments a 
+        JOIN pets p ON a.pet_id = p.id 
+        JOIN vets v ON a.vet_id = v.id 
+        WHERE a.tanggal >= NOW() 
+        ORDER BY a.tanggal ASC 
+        LIMIT 5
+      `),
+    ]);
+
+    res.json({
+      total_owners: parseInt(owners.rows[0].count),
+      total_pets: parseInt(pets.rows[0].count),
+      total_vets: parseInt(vets.rows[0].count),
+      total_appointments: parseInt(appointments.rows[0].count),
+      appointments_by_status: byStatus.rows,
+      upcoming_appointments: upcoming.rows,
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // ==================== START SERVER ====================
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
